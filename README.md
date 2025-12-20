@@ -56,7 +56,7 @@ http://localhost:8080
 Y ahi finalmente accedo a la consola de ArgoCD.
 
 # Estructura de Helm y manifiestos GitOps
-## 1) Árbol de infra-gitops (demo)
+## 1) Tree de infra-gitops de esta demo
 Esta es el diseño que tendrá este proyecto.
 
 ```
@@ -88,22 +88,20 @@ infra-gitops/
 └─ README.md
 ```
 
-## 2) Ejemplo `values.yaml` base (charts/service-a/values.yaml)
+## 2) Repo Dev  `values-service-a.yaml` correspondiente al primer microservicio.
+En este caso se ha seleccionado "podinfo" para hacer las pruebas.
 
 
 ```
-image:
-  repository: your-dockerhub-username/service-a
-  tag: "latest"
-  pullPolicy: IfNotPresent
-
+namespace: dev
 replicaCount: 1
-
+image:
+  repository: ghcr.io/stefanprodan/podinfo
+  tag: "6.3.6-dev"
 service:
   type: ClusterIP
   port: 8080
 
-resources: {}
 ```
 
 ## 3) Overlays por ambiente

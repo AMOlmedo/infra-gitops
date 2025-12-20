@@ -1,0 +1,8 @@
+namespace: test
+replicaCount: 2
+image:
+  repository: ghcr.io/stefanprodan/podinfo
+  tag: "6.3.6-test"
+service:
+  type: ClusterIP
+  port: 9898

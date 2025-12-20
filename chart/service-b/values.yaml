@@ -1,0 +1,17 @@
+namespace: default
+replicaCount: 1
+image:
+  repository: ghcr.io/stefanprodan/podinfo
+  tag: "6.3.6"
+  pullPolicy: IfNotPresent
+service:
+  type: ClusterIP
+  port: 9898
+resources:
+  requests:
+    cpu: 50m
+    memory: 64Mi
+  limits:
+    cpu: 200m
+    memory: 256Mi
+imagePullSecrets: []

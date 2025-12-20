@@ -1,0 +1,21 @@
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  name: service-a-dev
+  namespace: argocd
+spec:
+  project: default
+  source:
+    repoURL: https://github.com/AMOlmedo/infra-gitops.git
+    targetRevision: main
+    path: charts/service-a
+    helm:
+      valueFiles:
+        - environments/dev/values-service-a.yaml
+  destination:
+    server: https://kubernetes.default.svc
+    namespace: dev
+  syncPolicy:
+    automated:
+      prune: true
+      selfHeal: true
