@@ -167,7 +167,7 @@ metadata:
 spec:
   project: default
   source:
-    repoURL: https://github.com/your-org/infra-gitops.git
+    repoURL: https://github.com/AMOlmedo/infra-gitops.git
     targetRevision: main
     path: charts/service-a
     helm:
@@ -182,9 +182,14 @@ spec:
       selfHeal: true
 ```
 
-Igual para service-b y para test cambiando paths, nombre y namespace.
+Igual para service-b y para test cambiando `paths`, `ValueFile` y `namespace`.
 
 Aplicar apps:
+
+```
+git clone https://github.com/AMOlmedo/infra-gitops.git
+
+```
 
 ```
 kubectl apply -f infra-gitops/environments/dev/apps/ -n argocd
