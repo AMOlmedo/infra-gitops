@@ -1,21 +1,8 @@
-apiVersion: argoproj.io/v1alpha1
-kind: Application
-metadata:
-  name: service-a-dev
-  namespace: argocd
-spec:
-  project: default
-  source:
-    repoURL: https://github.com/your-org/infra-gitops.git
-    targetRevision: main
-    path: charts/service-a
-    helm:
-      valueFiles:
-        - environments/dev/values-service-a.yaml
-  destination:
-    server: https://kubernetes.default.svc
-    namespace: dev
-  syncPolicy:
-    automated:
-      prune: true
-      selfHeal: true
+namespace: test
+replicaCount: 1
+image:
+  repository: amolmedo/service-b
+  tag: "1.0.0-test"
+service:
+  type: ClusterIP
+  port: 80

@@ -1,8 +1,8 @@
 namespace: test
-replicaCount: 2
+replicaCount: 1
 image:
-  repository: ghcr.io/stefanprodan/podinfo
-  tag: "6.3.6-test"
+  repository: amolmedo/service-a
+  tag: "1.0.0-test"
 service:
   type: ClusterIP
-  port: 9898
+  port: 80
