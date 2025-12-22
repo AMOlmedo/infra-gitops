@@ -11,7 +11,7 @@ spec:
     path: charts/service-b
     helm:
       valueFiles:
-        - ../../environments/test/values-service-b.yaml
+        - values-test.yaml
   destination:
     server: https://kubernetes.default.svc
     namespace: test

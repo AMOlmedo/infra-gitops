@@ -11,7 +11,7 @@ spec:
     path: charts/service-a
     helm:
       valueFiles:
-        - ../../environments/dev/values-service-a.yaml
+        - values-dev.yaml
   destination:
     server: https://kubernetes.default.svc
     namespace: dev

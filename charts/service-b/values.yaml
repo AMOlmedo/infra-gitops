@@ -1,7 +1,7 @@
 namespace: default
 replicaCount: 1
 image:
-  repository: amolmedo/service-b
+  repository: docker.io/amolmedo/service-b
   tag: "6.3.6"
   pullPolicy: IfNotPresent
 service:
