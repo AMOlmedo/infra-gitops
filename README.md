@@ -1,4 +1,147 @@
-# Preparación del cluster Minikube y ArgoCD
+# Flujo CI/CD + GitOps para dev y test en Minikube con ArgoCD y Helm
+
+Estructura del proyecto:
+El paso inicial es la creacion de los repositorios en Github unp para Infraestructura `infra-gitops`  como "fuente de la verdad" y ademas la creacion de dos repositorios que alojaran los microservicios (en esta demo solo serán dos simples `index.html`)  `service-a`  y `service-b` respectivamente. 
+
+## Contenido de cada repositorio.
+
+### infra-gitops
+```
+infra-gitops/
+├─ charts/
+│  ├─ service-a/
+│  │  ├─ Chart.yaml
+│  │  ├─ templates/deployment.yaml
+│  │  ├─ templates/service.yaml
+│  │  └─ values.yaml
+│  └─ service-b/
+│     ├─ Chart.yaml
+│     ├─ templates/deployment.yaml
+│     ├─ templates/service.yaml
+│     └─ values.yaml
+├─ environments/
+│  ├─ dev/
+│  │  ├─ values-service-a.yaml
+│  │  ├─ values-service-b.yaml
+│  │  └─ apps/
+│  │     ├─ app-service-a.yaml
+│  │     └─ app-service-b.yaml
+│  └─ test/
+│     ├─ values-service-a.yaml
+│     ├─ values-service-b.yaml
+│     └─ apps/
+│        ├─ app-service-a.yaml
+│        └─ app-service-b.yaml
+└─ README.md
+```
+
+## Repositorios de código.
+En el repositorio de código, viven los microservicios service-a y service-b. Cada uno tiene su lógica mínima, un Dockerfile que los envuelve en Nginx, y un pipeline de CI listo para trabajar.
+
+### service-a
+```
+├─ index.html
+├─ Dockerfile
+├─ README.md
+└─ .github/workflows/ci-pipeline.yaml
+```
+### service-b
+ ```
+├─ index.html
+├─ Dockerfile
+├─ README.md
+└─ .github/workflows/ci-pipeline.yaml
+```
+
+Los `index.html` tiene la siguiente forma:
+
+```
+<!DOCTYPE html>
+<html>
+        <head><title>Service A</title></head>
+        <body>
+                  <h1>Hola, soy Service A!</h1>
+                    <p>Demo  de CI/CD con GitOps.</p>
+                    <p>version 0</p>
+        </body>
+</html>
+```
+El `Dockerfile`  que crea una imagen que sirve al index.html en el puerto 80. Es igual para ambos.
+
+```
+Dockerfile (igual para ambos)
+dockerfile
+FROM nginx:alpine
+COPY index.html /usr/share/nginx/html/index.html
+```
+Finalmente el `ci-pipeline.yaml` que importante para el proceso CI:
+Este sera el encargado de manejar los `secrets` del registry Docker Hub
+
+```
+name: CI Pipeline Service-A
+
+on:
+  push:
+    tags:
+      - '*-dev'
+      - '*-test'
+
+jobs:
+  build-and-update-infra:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Set env from tag
+        run: |
+          TAG="${GITHUB_REF##*/}"
+          if [[ "$TAG" == *-dev ]]; then echo "ENV=dev" >> $GITHUB_ENV; fi
+          if [[ "$TAG" == *-test ]]; then echo "ENV=test" >> $GITHUB_ENV; fi
+          echo "VERSION=$TAG" >> $GITHUB_ENV
+
+      - name: Login to Docker
+        uses: docker/login-action@v3
+        with:
+          username: ${{ secrets.DOCKER_USERNAME }}   #<---- Generar
+          password: ${{ secrets.DOCKER_TOKEN }}      #<---- Generar
+
+      - name: Build and push image
+        uses: docker/build-push-action@v6
+        with:
+          context: .
+          push: true
+          tags: amolmedo/service-a:${{ env.VERSION }}   #<---- usuario Docker Hub
+
+      - name: Checkout infra repo
+        uses: actions/checkout@v4
+        with:
+          repository: AMOlmedo/infra-gitops    #<---- usuario Github 
+          token: ${{ secrets.GH_PAT }}         #<---- Generar
+          path: infra
+
+      - name: Install yq
+        run: sudo snap install yq
+
+      - name: Update values
+        run: |
+          FILE="infra/environments/${ENV}/values-service-a.yaml"
+          yq -i ".image.tag = \"${VERSION}\"" "$FILE"
+
+      - name: Commit and push changes
+        run: |
+          cd infra
+          git config user.name "ci-bot"
+          git config user.email "ci-bot@adrian"
+          git add .
+          git commit -m "service-a: image.tag=${VERSION} for ${ENV}"
+          git push origin main
+```
+
+
+
+## Preparación del cluster Minikube y ArgoCD
+
 ## 1) Crear namespaces de ambientes
 Para tal fin se dispone de una VPS el cual previamente se ha instalado minikube para poder emular el cluster en k8s.
 Luego se procede a la creacion de nos namespaces solicitados, `dev` y `test`, como asi tambien el de `argocd` que luego lo necesitaremos.
@@ -59,34 +202,7 @@ Y ahi finalmente accedo a la consola de ArgoCD.
 ## 1) Tree de infra-gitops de esta demo
 Esta es el diseño que tendrá este proyecto.
 
-```
-infra-gitops/
-├─ charts/
-│  ├─ service-a/
-│  │  ├─ Chart.yaml
-│  │  ├─ templates/deployment.yaml
-│  │  ├─ templates/service.yaml
-│  │  └─ values.yaml
-│  └─ service-b/
-│     ├─ Chart.yaml
-│     ├─ templates/deployment.yaml
-│     ├─ templates/service.yaml
-│     └─ values.yaml
-├─ environments/
-│  ├─ dev/
-│  │  ├─ values-service-a.yaml
-│  │  ├─ values-service-b.yaml
-│  │  └─ apps/
-│  │     ├─ app-service-a.yaml
-│  │     └─ app-service-b.yaml
-│  └─ test/
-│     ├─ values-service-a.yaml
-│     ├─ values-service-b.yaml
-│     └─ apps/
-│        ├─ app-service-a.yaml
-│        └─ app-service-b.yaml
-└─ README.md
-```
+
 
 ## 2) Repo Dev  `values-service-a.yaml` correspondiente al primer microservicio.
 En este caso se ha seleccionado "podinfo" para hacer las pruebas.
@@ -196,14 +312,6 @@ kubectl apply -f infra-gitops/environments/dev/apps/ -n argocd
 kubectl apply -f infra-gitops/environments/test/apps/ -n argocd
 ```
 
-# CI: build y actualización del repo de infraestructura
-## 1) Supuestos
-
-Registry: Docker Hub.
-
-Branch principal: main.
-
-Tag semántico: X.Y.Z-dev o X.Y.Z-test.
 
 ## 2) Pipeline de CI (GitHub Actions en service-a/.github/workflows/release.yml)
 
@@ -419,6 +527,11 @@ sudo install -m 555 argocd-linux-amd64 /usr/local/bin/argocd
 
 ```
 argocd login argocd-server --username admin --password <tu-pass>
+
+
+
+argocd login localhost:8080 --username admin --password <argopass> --insecure
+
 ```
 Para obtener el pass:
 ```
