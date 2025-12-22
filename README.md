@@ -335,6 +335,112 @@ imagePullSecrets:
 ```
 
 
+# CD
+
+Infraestructura GitOps (infra-gitops)
+Ya tenés el repo preparado con los values-service-a.yaml y values-service-b.yaml. El flujo ahora es:
+
+Cada push de tag en service-a o service-b actualiza el values.yaml correspondiente en infra-gitops.
+
+ArgoCD detecta el cambio y sincroniza automáticamente en el cluster.
+
+🔹 3. ArgoCD Applications
+En tu cluster Kubernetes, ArgoCD debe tener aplicaciones configuradas para cada servicio y entorno (dev, test). Ejemplo:
+
+service-a-dev
+
+service-a-test
+
+service-b-dev
+
+service-b-test
+
+Cada una apunta al repo infra-gitops y al path correcto (charts/service-a o charts/service-b).
+
+🔹 4. Validar despliegues en Kubernetes
+Cuando hagas un nuevo tag:
+
+El pipeline construye y sube la imagen.
+
+Actualiza infra-gitops.
+
+ArgoCD sincroniza.
+
+En el cluster, revisás:
+
+bash
+kubectl get pods -n dev
+kubectl get pods -n test
+→ Deberías ver los pods de service-a y service-b corriendo.
+
+Podés acceder con port-forward:
+
+bash
+kubectl port-forward svc/service-a 8080:80 -n dev
+kubectl port-forward svc/service-b 8081:80 -n dev
+Y abrir en el navegador:
+
+http://localhost:8080 → Service A
+
+http://localhost:8081 → Service B
+
+🔹 5. Flujo completo ya armado
+Desarrollás en service-a o service-b.
+
+Taggeás una versión (1.0.7-dev).
+
+GitHub Actions construye y sube la imagen.
+
+Infra-gitops se actualiza automáticamente.
+
+ArgoCD despliega en el cluster.
+
+Kubernetes sirve tu index.html en el namespace correspondiente.
+
+✅ En este punto ya tenés un circuito CI/CD + GitOps completo:
+
+Código → Imagen → Infra → Cluster → Servicio accesible.
+
+Todo automatizado y reproducible para ambos microservicios.
+
+
+
+
+# instalar ArgoCD CLI en la  VPS
+
+curl -sSL -o argocd-linux-amd64 https://github.com/argoproj/argo-cd/releases/latest/download/argocd-linux-amd64
+
+sudo mv argocd-linux-amd64 /usr/local/bin/
+
+sudo install -m 555 argocd-linux-amd64 /usr/local/bin/argocd
+
+
+## luego hay que loguearse al ArgoCD
+
+```
+argocd login argocd-server --username admin --password <tu-pass>
+```
+Para obtener el pass:
+```
+kubectl -n argocd get secret argocd-initial-admin-secret -o jsonpath="{.data.password}" | base64 -d && echo
+```
+
+```
+arcocd  app list
+```
+
+
+kubectl port-forward svc/argocd-server -n argocd 8080:443
+
+
+en el WSL
+```
+ssh -L 8080:localhost:8080 adrian@<IP_DE_TU_VPS>
+```
+
+
+
+
 
 
 

@@ -1,9 +1,9 @@
-namespace: dev
-replicaCount: 1
-image:
-  repository: amolmedo/service-b
-  tag: "1.0.0-dev"
-service:
-  type: ClusterIP
-  port: 80
+spec:
+  source:
+    repoURL: https://github.com/AMOlmedo/infra-gitops.git
+    targetRevision: main
+    path: charts/service-b
+    helm:
+      valueFiles:
+        - environments/dev/values-service-b.yaml
 
