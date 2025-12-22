@@ -1,0 +1,12 @@
+replicaCount: 1
+
+image:
+  repository: docker.io/amolmedo/service-a   # usuario en Docker Hub + repo
+  tag: "1.0.0"
+  pullPolicy: IfNotPresent
+
+service:
+  type: ClusterIP
+  port: 9898
+
+resources: {}
