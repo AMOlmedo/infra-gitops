@@ -69,10 +69,10 @@ Los `index.html` tiene la siguiente forma:
 El `Dockerfile`  que crea una imagen que sirve al index.html en el puerto 80. Es igual para ambos.
 
 ```
-Dockerfile (igual para ambos)
-dockerfile
+# service-a
 FROM nginx:alpine
 COPY index.html /usr/share/nginx/html/index.html
+
 ```
 Finalmente el `ci-pipeline.yaml` que importante para el proceso CI:
 Este sera el encargado de manejar los `secrets` del registry Docker Hub
@@ -138,13 +138,29 @@ jobs:
           git push origin main
 ```
 
+Cuando el desarrollador o tester hace modificaciones en el `service-a` por ejemplo lo hace un *tag especial* `-dev` o `-test` acompañado de la version, ejemplo:
 
+```
+git tag 1.0.0-dev
+```
+ o 
+```
+git tag 1.0.0-test
+```
+Ese sufijo es quien abre el camino hacia el namespace correcto dentro de Minikube.
+El pipeline de CI entra en acción. 
+El commit con tag dispara el pipeline.
+El CI construye la imagen Docker del servicio.
+La etiqueta con el tag y el SHA del commit, asegurando trazabilidad.
+Luego la sube al registry Docker Hub, en doode previamente se debe tener usuario creado.
 
-## Preparación del cluster Minikube y ArgoCD
+Pero aquí viene lo importante: el CI nunca toca el cluster directamente. En lugar de eso, abre el repositorio de infraestructura y actualiza el `values.yaml`  correspondiente al ambiente y cambia el `image.tag` para que apunte a la nueva versión. Es en este punto donde ArgoCD "escucha" y entra en accion.
+
+# Preparación del cluster Minikube y ArgoCD
 
 ## 1) Crear namespaces de ambientes
-Para tal fin se dispone de una VPS el cual previamente se ha instalado minikube para poder emular el cluster en k8s.
-Luego se procede a la creacion de nos namespaces solicitados, `dev` y `test`, como asi tambien el de `argocd` que luego lo necesitaremos.
+Para tal fin se dispone de una VPS en la cual previamente se ha instalado minikube para poder emular el cluster en k8s.
+Luego se procede a la creacion de los nos namespaces solicitados, `dev` y `test`, como asi tambien el de `argocd` que luego lo necesitaremos.
 
 ```
 kubectl create namespace dev
@@ -152,7 +168,6 @@ kubectl create namespace test
 kubectl create namespace argocd
 ```
 ## 2) Instalar ArgoCD
-
 
 ```
 kubectl apply -n argocd -f https://raw.githubusercontent.com/argoproj/argo-cd/stable/manifests/install.yaml
@@ -162,7 +177,6 @@ La segunda linea de comando se utilizará para monitorear el progreso de un desp
 
 ## 3) Exponer ArgoCD en Minikube
 
-
 ```
 kubectl -n argocd patch svc argocd-server -p '{"spec": {"type": "NodePort"}}'
 kubectl -n argocd get svc argocd-server
@@ -170,16 +184,15 @@ minikube service argocd-server -n argocd --url
 ```
 
 En la primera linea de comando se cambia el servicio argocd-server que inicialmente viene por defecto como ClusterIp por NodePort. Esto es porque al no tener un cluster real, no tenemmos un servicios de  LoadBalancer, por lo cual para poder acceder a la interfaz web de ArgoCD desde afuera del cluster, se asigna un puerto que redirige el servicio dentro del cluster.
-Finalmete la última linea de comando abre un tunel y da un URL para acceder desde el navegador y expone la `IP` y el numero de puerto del servicio.
+Finalmente la última linea de comando abre un tunel y da un URL para acceder desde el navegador y expone la `IP` y el numero de puerto del servicio.
 
 ## 4) Obtener password inicial por default
-
+Esta es la contraseña será requerida inicialmente para loguearnos en la consola ArgoCD con el usuario `admin`.
 ```
 kubectl -n argocd get secret argocd-initial-admin-secret -o jsonpath="{.data.password}" | base64 -d && echo
 ```
-Esta es la contraseña será requerida inicialmente para loguearnos en la consola ArgoCD con el usuario `admin`.
 
-En el escenario actual en donde necesito acceder al la consola de administracion desde  mi host al servicio ArgoCd expuesto en la VPS, en necesario en mi caso, crear un tunel. 
+En el escenario actual en donde es necesario acceder al la consola de administracion desde  el host al servicio ArgoCD expuesto en la VPS, en necesario, en mi caso, crear un tunel. 
 
 En la VPS:
 ```
@@ -196,7 +209,9 @@ y finalmente desde mi navegador mi host (Win10):
 http://localhost:8080
 ```
 
-Y ahi finalmente accedo a la consola de ArgoCD.
+Y ahi finalmente  se acced a la consola web de administacion de ArgoCD.
+
+
 
 # Estructura de Helm y manifiestos GitOps
 ## 1) Tree de infra-gitops de esta demo
