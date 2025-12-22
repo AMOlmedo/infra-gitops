@@ -1,7 +1,7 @@
 namespace: default
 replicaCount: 1
 image:
-  repository: https://github.com/AMOlmedo/infra-gitops.git
+  repository: amolmedo/service-a
   tag: "1.0.0"
   pullPolicy: IfNotPresent
 service:

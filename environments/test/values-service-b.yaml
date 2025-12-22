@@ -5,4 +5,4 @@ spec:
     path: charts/service-b
     helm:
       valueFiles:
-        - environments/test/values-service-b.yaml
+        - ../../environments/test/values-service-b.yaml

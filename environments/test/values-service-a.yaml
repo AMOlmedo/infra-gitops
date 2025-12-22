@@ -5,5 +5,5 @@ spec:
     path: charts/service-a   
     helm:
       valueFiles:
-        - environments/test/values-service-a.yaml
+        - ../../environments/test/values-service-a.yaml
 
