@@ -1,8 +1,0 @@
-spec:
-  source:
-    repoURL: https://github.com/AMOlmedo/infra-gitops.git
-    targetRevision: main
-    path: charts/service-b
-    helm:
-      valueFiles:
-        - ../../environments/test/values-service-b.yaml
