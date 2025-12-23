@@ -1,9 +1,22 @@
-spec:
-  source:
-    repoURL: https://github.com/AMOlmedo/infra-gitops.git
-    targetRevision: main
-    path: charts/service-a   
-    helm:
-      valueFiles:
-        - ../../environments/dev/values-service-a.yaml
+replicaCount: 1
 
+image:
+  repository: docker.io/amolmedo/service-a
+  tag: "dev-1.0.0"
+  pullPolicy: IfNotPresent
+
+service:
+  type: ClusterIP
+  port: 9898
+
+resources:
+  limits:
+    cpu: "200m"
+    memory: "256Mi"
+  requests:
+    cpu: "100m"
+    memory: "128Mi"
+
+env:
+  - name: ENVIRONMENT
+    value: "development"

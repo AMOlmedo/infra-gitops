@@ -1,20 +1,20 @@
 apiVersion: argoproj.io/v1alpha1
 kind: Application
 metadata:
-  name: service-a-dev
+  name: service-b-test
   namespace: argocd
 spec:
   project: default
   source:
     repoURL: https://github.com/AMOlmedo/infra-gitops.git
     targetRevision: main
-    path: charts/service-a
+    path: charts/service-b
     helm:
       valueFiles:
-        - values-dev.yaml
+        - values-test.yaml
   destination:
     server: https://kubernetes.default.svc
-    namespace: dev
+    namespace: test
   syncPolicy:
     automated:
       prune: true
