@@ -61,8 +61,8 @@ Los `index.html` tiene la siguiente forma:
         <head><title>Service A</title></head>
         <body>
                   <h1>Hola, soy Service A!</h1>
-                    <p>Demo  de CI/CD con GitOps.</p>
-                    <p>version 0</p>
+                  <p>Demo  de CI/CD con GitOps.</p>
+                  <p>version 0</p>
         </body>
 </html>
 ```
