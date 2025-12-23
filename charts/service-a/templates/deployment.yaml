@@ -1,22 +1,22 @@
 apiVersion: apps/v1
 kind: Deployment
 metadata:
-  name: {{ include "service-b.fullname" . }}
+  name: {{ include "service-a.fullname" . }}
   namespace: {{ .Release.Namespace }}
   labels:
-    app: {{ include "service-b.name" . }}
+    app: {{ include "service-a.name" . }}
 spec:
   replicas: {{ .Values.replicaCount }}
   selector:
     matchLabels:
-      app: {{ include "service-b.name" . }}
+      app: {{ include "service-a.name" . }}
   template:
     metadata:
       labels:
-        app: {{ include "service-b.name" . }}
+        app: {{ include "service-a.name" . }}
     spec:
       containers:
-        - name: {{ include "service-b.name" . }}
+        - name: {{ include "service-a.name" . }}
           image: "{{ .Values.image.repository }}:{{ .Values.image.tag }}"
           imagePullPolicy: {{ .Values.image.pullPolicy }}
           ports:
@@ -28,4 +28,3 @@ spec:
             {{- end }}
           resources:
             {{- toYaml .Values.resources | nindent 12 }}
-
